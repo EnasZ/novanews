@@ -1,7 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc/bloc.dart';
+import 'package:novanews/feature/home/data/model/article_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'home_state.dart';
-import '../data/article_model.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());

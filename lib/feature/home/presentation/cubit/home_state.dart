@@ -1,4 +1,5 @@
-import '../data/article_model.dart';
+import 'package:novanews/feature/home/data/model/article_model.dart';
+
 
 abstract class HomeState {
   const HomeState();
