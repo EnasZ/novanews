@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:novanews/core/app_images.dart';
+import 'package:novanews/core/resources/assets/app_assets.dart';
 import 'package:novanews/core/theme/app_colors.dart';
 import 'package:novanews/core/theme/app_styles.dart';
 
