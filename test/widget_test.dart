@@ -7,13 +7,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:ilc_task/features/auth/data/data_sources/auth_local_data_source.dart';
+import 'package:ilc_task/features/auth/data/models/user_model.dart';
+import 'package:ilc_task/main.dart';
 
-import 'package:novanews/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const NovaNews());
+    final userBox = await Hive.openBox<UserModel>('users');
+    final settingsBox = await Hive.openBox('settings');
+  
+    final authLocalDataSource = AuthLocalDataSourceImpl(userBox, settingsBox);
+
+    await tester.pumpWidget(MyApp(authLocalDataSource: authLocalDataSource, settingsBox: settingsBox,));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

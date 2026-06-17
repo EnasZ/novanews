@@ -1,35 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:novanews/core/routes/app_routes.dart';
-import 'package:novanews/feature/home/presentation/screens/home.dart';
-import 'package:novanews/feature/splash/presentation/screens/splash.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'core/theme/app_theme.dart';
+import 'core/utils/app_router.dart';
+import 'features/auth/data/data_sources/auth_local_data_source.dart';
+import 'features/auth/data/models/user_model.dart';
+import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/settings/presentation/cubit/settings_cubit.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://supabase.com/dashboard/project/jkkwdfmdqmyjfqyxzcdh/database/schemas',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impra3dkZm1kcW15amZxeXh6Y2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTk0ODYsImV4cCI6MjA5NTM3NTQ4Nn0.lMJ5dmf0RppSeJDsFyl2YJs-24ylV6RL85AhImPKoO8',
-  );
+  
+  await Hive.initFlutter();
+  Hive.registerAdapter(UserModelAdapter());
+  
+  final userBox = await Hive.openBox<UserModel>('users');
+  final settingsBox = await Hive.openBox('settings');
+  
+  final authLocalDataSource = AuthLocalDataSourceImpl(userBox, settingsBox);
 
-  runApp(const NovaNews());
+  runApp(MyApp(
+    authLocalDataSource: authLocalDataSource,
+    settingsBox: settingsBox,
+  ));
 }
 
-class NovaNews extends StatelessWidget {
-  const NovaNews({super.key});
+class MyApp extends StatelessWidget {
+  final AuthLocalDataSource authLocalDataSource;
+  final Box settingsBox;
 
-  // This widget is the root of your application.
+  const MyApp({
+    super.key,
+    required this.authLocalDataSource,
+    required this.settingsBox,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'NovaNews',
-      debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.splash,
-      routes: {
-        AppRoutes.splash: (context) => const Splash(),
-        AppRoutes.home: (context) => const Home(),
-      },
-      
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AuthCubit(authLocalDataSource)..checkAuth()),
+        BlocProvider(create: (context) => SettingsCubit(settingsBox)),
+      ],
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, state) {
+          return MaterialApp.router(
+            title: 'NovaNews',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: state.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            routerConfig: AppRouter.router,
+          );
+        },
+      ),
     );
   }
 }
-
